@@ -25,6 +25,7 @@ class SpotifyClient:
 
     def __init__(self):
         # TODO: save the tokens to keep them even after restarts?
+        # TODO: otherwise just remove the file CacheHandler as it does not work with multiple accounts
         self._auth_manager = _create_auth_manager()
 
         self._client: Optional[spotipy.Spotify] = None

@@ -1,1 +1,5 @@
 /* components/Spotify.css */
+.spotify-page .albums,
+.spotify-page .songs {
+    padding: 0 16px
+}

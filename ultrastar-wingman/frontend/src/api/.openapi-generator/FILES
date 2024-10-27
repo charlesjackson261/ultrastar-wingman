@@ -139,7 +139,3 @@ src/model/UserUpdate.js
 src/model/ValidationError.js
 src/model/WishModel.js
 src/model/WishlistModel.js
-test/model/SpotifyPlaylist.spec.js
-test/model/SpotifyPlaylistItems.spec.js
-test/model/SpotifyPlaylists.spec.js
-test/model/SpotifySong.spec.js

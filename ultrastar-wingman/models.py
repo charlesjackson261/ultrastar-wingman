@@ -206,6 +206,7 @@ class SpotifyPlaylist(BaseModel):
     id: str = Field(description="The Spotify ID for the playlist.")
     name: str = Field(description="The name of the playlist.")
     image: Optional[str] = Field(description="The url for the playlist image.")
+    owner: Optional[str] = Field(description="The name of the playlists owner.")
 
 
 class SpotifyPlaylists(BaseModel):

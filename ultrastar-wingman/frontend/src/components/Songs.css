@@ -8,12 +8,12 @@
 
 .songs-page .download-options .tile.usdb {
     /*TODO: icon that has more pixels than I can count on one hand*/
-    background-size: 50%;
+    background-size: 60%;
     background-image: url("https://usdb.animux.de/images/browser_icon.ico");
 }
 
 .songs-page .download-options .tile.spotify {
-    background-size: 50%;
+    background-size: 60%;
     background-image: url("../../public/spotify.svg");
 }
 

@@ -1,0 +1,48 @@
+/* components/SpotifyAlbum.css */
+.spotify-album {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+    cursor: pointer;
+}
+
+.spotify-album .image {
+    width: 48px;
+    height: 48px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #000;
+}
+
+.spotify-album .image.saved {
+    background: var(--highlight-blue-light);
+    background: linear-gradient(-10deg, var(--highlight-pink-light) 10%, var(--highlight-blue-light) 90%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 24px;
+}
+
+.spotify-album .details {
+    display: grid;
+    gap: 4px;
+}
+
+.spotify-album .details * {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.spotify-album .name {
+    font-size: 1em;
+    color: var(--color);
+}
+.spotify-album .owner {
+    font-size: 0.75em;
+    color: var(--color-dark);
+}

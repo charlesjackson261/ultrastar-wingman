@@ -1,0 +1,38 @@
+/* components/SpotifySong.css */
+.spotify-song {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+    cursor: pointer;
+}
+
+.spotify-song .image {
+    width: 48px;
+    height: 48px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #000;
+}
+
+.spotify-song .details {
+    display: grid;
+    gap: 4px;
+}
+
+.spotify-song .details * {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.spotify-song .name {
+    font-size: 1em;
+    color: var(--color);
+}
+.spotify-song .artists {
+    font-size: 0.75em;
+    color: var(--color-dark);
+}

@@ -695,9 +695,13 @@ async def api_spotify_me(user: User = Depends(permissions.user_permissions())):
     if player.spotify_client.client is None:
         raise HTTPException(status_code=403, detail=f"Not logged into Spotify")
 
-    return {
-        "name": player.spotify_client.client.current_user()["display_name"]
-    }
+    try:
+        return {
+            "name": player.spotify_client.client.current_user()["display_name"]
+        }
+    except SpotifyOauthError:
+        player.spotify_client.logout()
+        raise HTTPException(status_code=403, detail=f"Not logged into Spotify")
 
 
 @app.get('/api/spotify/playlists', response_model=models.SpotifyPlaylists, status_code=status.HTTP_200_OK, summary="All saved Spotify playlists", response_description="All saved Spotify playlists", tags=["Spotify"])
@@ -722,12 +726,18 @@ async def api_spotify_playlists(user: User = Depends(permissions.user_permission
     playlists = []
 
     while True:
-        results = sp.current_user_playlists(limit=limit, offset=offset)
+        try:
+            results = sp.current_user_playlists(limit=limit, offset=offset)
+        except SpotifyOauthError:
+            player.spotify_client.logout()
+            raise HTTPException(status_code=403, detail=f"Not logged into Spotify")
+
         for item in results['items']:
             playlists.append({
                 "id": item['id'],
                 "name": item['name'],
-                "image": item['images'][0].get("url") if item.get("images") else None
+                "image": item['images'][0].get("url") if item.get("images") else None,
+                "owner": item.get("owner", {}).get("display_name")
             })
 
         if results['next'] is None:
@@ -760,12 +770,18 @@ async def api_spotify_playlists_items(playlist_id: str, limit: int = 50, offset:
 
     songs = []
 
-    if playlist_id == "saved":
-        results = sp.current_user_saved_tracks(limit=limit, offset=offset)
-    else:
-        results = sp.playlist_items(playlist_id, limit=limit, offset=offset)
+    try:
+        if playlist_id == "saved":
+            results = sp.current_user_saved_tracks(limit=limit, offset=offset)
+        else:
+            results = sp.playlist_items(playlist_id, limit=limit, offset=offset)
+    except SpotifyOauthError:
+        player.spotify_client.logout()
+        raise HTTPException(status_code=403, detail=f"Not logged into Spotify")
 
     for item in results['items']:
+        # TODO: check if the song was already downloaded and mark those
+
         if album := item['track'].get("album"):
             image = album['images'][0].get("url") if album.get("images") else None
         else:

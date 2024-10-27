@@ -25,10 +25,11 @@ class SpotifyPlaylist {
      * @param id {String} The Spotify ID for the playlist.
      * @param name {String} The name of the playlist.
      * @param image {String} The url for the playlist image.
+     * @param owner {String} The name of the playlists owner.
      */
-    constructor(id, name, image) { 
+    constructor(id, name, image, owner) { 
         
-        SpotifyPlaylist.initialize(this, id, name, image);
+        SpotifyPlaylist.initialize(this, id, name, image, owner);
     }
 
     /**
@@ -36,10 +37,11 @@ class SpotifyPlaylist {
      * This method is used by the constructors of any subclasses, in order to implement multiple inheritance (mix-ins).
      * Only for internal use.
      */
-    static initialize(obj, id, name, image) { 
+    static initialize(obj, id, name, image, owner) { 
         obj['id'] = id;
         obj['name'] = name;
         obj['image'] = image;
+        obj['owner'] = owner;
     }
 
     /**
@@ -61,6 +63,9 @@ class SpotifyPlaylist {
             }
             if (data.hasOwnProperty('image')) {
                 obj['image'] = ApiClient.convertToType(data['image'], 'String');
+            }
+            if (data.hasOwnProperty('owner')) {
+                obj['owner'] = ApiClient.convertToType(data['owner'], 'String');
             }
         }
         return obj;
@@ -90,6 +95,10 @@ class SpotifyPlaylist {
         if (data['image'] && !(typeof data['image'] === 'string' || data['image'] instanceof String)) {
             throw new Error("Expected the field `image` to be a primitive type in the JSON string but got " + data['image']);
         }
+        // ensure the json data is a string
+        if (data['owner'] && !(typeof data['owner'] === 'string' || data['owner'] instanceof String)) {
+            throw new Error("Expected the field `owner` to be a primitive type in the JSON string but got " + data['owner']);
+        }
 
         return true;
     }
@@ -97,7 +106,7 @@ class SpotifyPlaylist {
 
 }
 
-SpotifyPlaylist.RequiredProperties = ["id", "name", "image"];
+SpotifyPlaylist.RequiredProperties = ["id", "name", "image", "owner"];
 
 /**
  * The Spotify ID for the playlist.
@@ -116,6 +125,12 @@ SpotifyPlaylist.prototype['name'] = undefined;
  * @member {String} image
  */
 SpotifyPlaylist.prototype['image'] = undefined;
+
+/**
+ * The name of the playlists owner.
+ * @member {String} owner
+ */
+SpotifyPlaylist.prototype['owner'] = undefined;
 
 
 
