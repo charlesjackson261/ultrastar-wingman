@@ -10,7 +10,7 @@ import spotipy
 from packaging import version
 
 import uvicorn
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 from fastapi import FastAPI, Request, HTTPException, Query, status, Response, WebSocket, WebSocketDisconnect, Depends, UploadFile, File
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -310,9 +310,9 @@ async def api_sing_song(song_id, sing_model: models.SingModel, _: User = Depends
 
 
 @app.get('/api/song_lookup', response_model=models.SongsResponse, summary="Searches for the given title and artist in the downloaded songs. Title and artist will be normalized to allow for slightly different spellings.", response_description="The songs", tags=["Songs"])
-async def api_get_song_lookup(title: str, artist: str, _: User = Depends(permissions.user_permissions(permissions.songs_browse))):
+async def api_get_song_lookup(title: str, artists: List[str] = Query(...), _: User = Depends(permissions.user_permissions(permissions.songs_browse))):
     return {
-        "songs": [s.to_json() for s in Song.lookup_song(title, artist)]
+        "songs": [s.to_json() for s in Song.lookup_song(title, artists)]
     }
 
 

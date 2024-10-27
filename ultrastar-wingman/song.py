@@ -433,7 +433,7 @@ class Song:
         :return: A list of artists
         """
 
-        split_chars = r",|feat\.|featuring| x "  # comma, 'feat.', 'featuring', or ' x '
+        split_chars = r",|feat\.|featuring| x | \+ "  # comma, 'feat.', 'featuring', or ' x '
         result = re.split(split_chars, artists)
 
         return [item.strip() for item in result]
@@ -456,7 +456,12 @@ class Song:
 
         artist_str = re.sub(normalize_pattern, '', artist).lower()
 
-        title = re.sub(normalize_pattern, '', title.lower().replace("[duet]", "").strip()).lower()
+        title = title.lower()
+        if ' - ' in title:
+            title = title.rsplit(' - ', 1)[0]
+        title = title.replace("[duet]", "")
+        title = title.strip()
+        title = re.sub(normalize_pattern, '', title).lower()
 
         return hashlib.md5((artist_str + title).encode()).hexdigest()
 

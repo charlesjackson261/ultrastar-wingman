@@ -8,5 +8,6 @@ Name | Type | Description | Notes
 **name** | **String** | The name of the track. | 
 **image** | **String** | The url for the song cover. | 
 **artists** | **[String]** | List of artists. | 
+**downloadedSongs** | [**[Song]**](Song.md) | A list of already downloaded songs that match the name and artists. | 
 
 

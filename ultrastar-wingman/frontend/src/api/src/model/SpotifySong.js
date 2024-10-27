@@ -12,6 +12,7 @@
  */
 
 import ApiClient from '../ApiClient';
+import Song from './Song';
 
 /**
  * The SpotifySong model module.
@@ -26,10 +27,11 @@ class SpotifySong {
      * @param name {String} The name of the track.
      * @param image {String} The url for the song cover.
      * @param artists {Array.<String>} List of artists.
+     * @param downloadedSongs {Array.<module:model/Song>} A list of already downloaded songs that match the name and artists.
      */
-    constructor(id, name, image, artists) { 
+    constructor(id, name, image, artists, downloadedSongs) { 
         
-        SpotifySong.initialize(this, id, name, image, artists);
+        SpotifySong.initialize(this, id, name, image, artists, downloadedSongs);
     }
 
     /**
@@ -37,11 +39,12 @@ class SpotifySong {
      * This method is used by the constructors of any subclasses, in order to implement multiple inheritance (mix-ins).
      * Only for internal use.
      */
-    static initialize(obj, id, name, image, artists) { 
+    static initialize(obj, id, name, image, artists, downloadedSongs) { 
         obj['id'] = id;
         obj['name'] = name;
         obj['image'] = image;
         obj['artists'] = artists;
+        obj['downloaded_songs'] = downloadedSongs;
     }
 
     /**
@@ -66,6 +69,9 @@ class SpotifySong {
             }
             if (data.hasOwnProperty('artists')) {
                 obj['artists'] = ApiClient.convertToType(data['artists'], ['String']);
+            }
+            if (data.hasOwnProperty('downloaded_songs')) {
+                obj['downloaded_songs'] = ApiClient.convertToType(data['downloaded_songs'], [Song]);
             }
         }
         return obj;
@@ -99,6 +105,16 @@ class SpotifySong {
         if (!Array.isArray(data['artists'])) {
             throw new Error("Expected the field `artists` to be an array in the JSON data but got " + data['artists']);
         }
+        if (data['downloaded_songs']) { // data not null
+            // ensure the json data is an array
+            if (!Array.isArray(data['downloaded_songs'])) {
+                throw new Error("Expected the field `downloaded_songs` to be an array in the JSON data but got " + data['downloaded_songs']);
+            }
+            // validate the optional field `downloaded_songs` (array)
+            for (const item of data['downloaded_songs']) {
+                Song.validateJSON(item);
+            };
+        }
 
         return true;
     }
@@ -106,7 +122,7 @@ class SpotifySong {
 
 }
 
-SpotifySong.RequiredProperties = ["id", "name", "image", "artists"];
+SpotifySong.RequiredProperties = ["id", "name", "image", "artists", "downloaded_songs"];
 
 /**
  * The Spotify ID for the track.
@@ -131,6 +147,12 @@ SpotifySong.prototype['image'] = undefined;
  * @member {Array.<String>} artists
  */
 SpotifySong.prototype['artists'] = undefined;
+
+/**
+ * A list of already downloaded songs that match the name and artists.
+ * @member {Array.<module:model/Song>} downloaded_songs
+ */
+SpotifySong.prototype['downloaded_songs'] = undefined;
 
 
 

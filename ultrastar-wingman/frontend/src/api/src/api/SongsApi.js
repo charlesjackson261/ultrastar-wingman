@@ -176,26 +176,26 @@ export default class SongsApi {
     /**
      * Searches for the given title and artist in the downloaded songs. Title and artist will be normalized to allow for slightly different spellings.
      * @param {String} title 
-     * @param {String} artist 
+     * @param {Array.<String>} artists 
      * @param {module:api/SongsApi~apiGetSongLookupApiSongLookupGetCallback} callback The callback function, accepting three arguments: error, data, response
      * data is of type: {@link module:model/SongsResponse}
      */
-    apiGetSongLookupApiSongLookupGet(title, artist, callback) {
+    apiGetSongLookupApiSongLookupGet(title, artists, callback) {
       let postBody = null;
       // verify the required parameter 'title' is set
       if (title === undefined || title === null) {
         throw new Error("Missing the required parameter 'title' when calling apiGetSongLookupApiSongLookupGet");
       }
-      // verify the required parameter 'artist' is set
-      if (artist === undefined || artist === null) {
-        throw new Error("Missing the required parameter 'artist' when calling apiGetSongLookupApiSongLookupGet");
+      // verify the required parameter 'artists' is set
+      if (artists === undefined || artists === null) {
+        throw new Error("Missing the required parameter 'artists' when calling apiGetSongLookupApiSongLookupGet");
       }
 
       let pathParams = {
       };
       let queryParams = {
         'title': title,
-        'artist': artist
+        'artists': this.apiClient.buildCollectionParam(artists, 'multi')
       };
       let headerParams = {
       };

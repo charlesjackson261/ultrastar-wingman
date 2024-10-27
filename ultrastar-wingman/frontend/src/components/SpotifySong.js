@@ -1,26 +1,20 @@
 // components/SpotifySong.js
 import React from 'react';
 import './SpotifySong.css';
+import {FaCheck} from "react-icons/fa";
 
 function SpotifySong({
-                          id,
-                          name,
-                          image,
-                          artists,
-                          setSelectedSong
-                      }) {
+                         song,
+                         setSelectedSpotifySong
+                     }) {
     return (
-        <div key={id} className="spotify-song" onClick={() => setSelectedSong({
-            id: id,
-            name: name,
-            image: image,
-            artists: artists
-        })}>
-            <span className="image" style={{backgroundImage: `url('${image}')`}}/>
+        <div key={song.id} className={`spotify-song ${song.downloaded_songs.length > 0 ? 'downloaded' : ''}`} onClick={() => setSelectedSpotifySong(song)}>
+            <span className="image" style={{backgroundImage: `url('${song.image}')`}}/>
             <div className="details">
-                <label className="name" title={name}>{name}</label>
-                <label className="artists" title={artists}>{artists.join(', ')}</label>
+                <label className="name" title={song.name}>{song.name}</label>
+                <label className="artists" title={song.artists}>{song.artists.join(', ')}</label>
             </div>
+            {song.downloaded_songs.length > 0 && <div className={"checkmark"}><FaCheck/></div>}
         </div>
     );
 }

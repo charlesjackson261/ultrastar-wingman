@@ -157,7 +157,7 @@ Name | Type | Description  | Notes
 
 ## apiGetSongLookupApiSongLookupGet
 
-> SongsResponse apiGetSongLookupApiSongLookupGet(title, artist)
+> SongsResponse apiGetSongLookupApiSongLookupGet(title, artists)
 
 Searches for the given title and artist in the downloaded songs. Title and artist will be normalized to allow for slightly different spellings.
 
@@ -172,8 +172,8 @@ OAuth2PasswordBearer.accessToken = 'YOUR ACCESS TOKEN';
 
 let apiInstance = new UltraStarWingman.SongsApi();
 let title = "title_example"; // String | 
-let artist = "artist_example"; // String | 
-apiInstance.apiGetSongLookupApiSongLookupGet(title, artist, (error, data, response) => {
+let artists = ["null"]; // [String] | 
+apiInstance.apiGetSongLookupApiSongLookupGet(title, artists, (error, data, response) => {
   if (error) {
     console.error(error);
   } else {
@@ -188,7 +188,7 @@ apiInstance.apiGetSongLookupApiSongLookupGet(title, artist, (error, data, respon
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **title** | **String**|  | 
- **artist** | **String**|  | 
+ **artists** | [**[String]**](String.md)|  | 
 
 ### Return type
 

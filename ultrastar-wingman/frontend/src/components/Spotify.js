@@ -1,13 +1,15 @@
 // components/Spotify.js
 import React, {useEffect, useState} from 'react';
 import './Spotify.css';
-import {apiCallback, useSpotifyMe, useSpotifyPlaylists} from "../helpers";
+import {apiCallback, useClientWishlist, useCurrentlyPlayingSong, useFavoriteIds, useSpotifyMe, useSpotifyPlaylists} from "../helpers";
 import Spinner from "./Spinner";
 import {NavLink, useNavigate} from "react-router-dom";
 import SpotifyAlbum from "./SpotifyAlbum";
 import {SpotifyApi} from "../api/src";
 import SpotifySong from "./SpotifySong";
 import SpotifySongDetailsModal from "./SpotifySongDetailsModal";
+import PlayerSelection from "./PlayerSelection";
+import SongDetailsModal from "./SongDetailsModal";
 
 function Spotify() {
     const [spotifyMe, setSpotifyMe] = useSpotifyMe();
@@ -19,9 +21,13 @@ function Spotify() {
     const [playlistItemsLoading, setPlaylistItemsLoading] = useState(false);
     const [hasMorePlayListItems, setHasMorePlayListItems] = useState(true);
 
-    const [selectedSong, setSelectedSong] = useState(null);
+    const [selectedSpotifySong, setSelectedSpotifySong] = useState(null);
 
-    const navigate = useNavigate();
+    const [playerSelectionSong, setPlayerSelectionSong] = useState(null);
+    const [currentlyPlayingSong, setCurrentlyPlayingSong] = useCurrentlyPlayingSong();
+    const [clientWishlist, setClientWishlist] = useClientWishlist();
+    const [favoriteIds, setFavoriteIds] = useFavoriteIds();
+    const [selectedSong, setSelectedSong] = useState(null);
 
     // TODO: back does not work as this is does not open a new url on album selection
 
@@ -95,21 +101,41 @@ function Spotify() {
                     <div className={"songs"}>
                         {playlistItems.map(song => (
                             <SpotifySong
-                                id={song.id}
-                                name={song.name}
-                                image={song.image}
-                                artists={song.artists}
-                                setSelectedSong={setSelectedSong}
+                                song={song}
+                                setSelectedSpotifySong={setSelectedSpotifySong}
                             />
                         ))}
                     </div>
 
                     {playlistItemsLoading && <Spinner/>}
 
-                    {selectedSong &&
+                    {selectedSpotifySong && !selectedSong &&
                         <SpotifySongDetailsModal
-                            selectedSong={selectedSong}
+                            selectedSpotifySong={selectedSpotifySong}
+                            setSelectedSpotifySong={setSelectedSpotifySong}
                             setSelectedSong={setSelectedSong}
+                            clientWishlist={clientWishlist}
+                            favoriteIds={favoriteIds}
+                        />
+                    }
+
+                    {selectedSong && !playerSelectionSong &&
+                        <SongDetailsModal
+                            song={selectedSong}
+                            onClose={() => setSelectedSong(null)}
+                            setPlayerSelectionSong={setPlayerSelectionSong}
+                            currentlyPlayingSong={currentlyPlayingSong}
+                            clientWishlist={clientWishlist}
+                            setClientWishlist={setClientWishlist}
+                            favoriteIds={favoriteIds}
+                            setFavoriteIds={setFavoriteIds}
+                        />
+                    }
+
+                    {playerSelectionSong &&
+                        <PlayerSelection
+                            song={playerSelectionSong}
+                            onClose={() => setPlayerSelectionSong(false)}
                         />
                     }
                 </div>
