@@ -309,6 +309,13 @@ async def api_sing_song(song_id, sing_model: models.SingModel, _: User = Depends
         raise HTTPException(status_code=409, detail="Another song is already playing")
 
 
+@app.get('/api/song_lookup', response_model=models.SongsResponse, summary="Searches for the given title and artist in the downloaded songs. Title and artist will be normalized to allow for slightly different spellings.", response_description="The songs", tags=["Songs"])
+async def api_get_song_lookup(title: str, artist: str, _: User = Depends(permissions.user_permissions(permissions.songs_browse))):
+    return {
+        "songs": [s.to_json() for s in Song.lookup_song(title, artist)]
+    }
+
+
 @app.get('/api/players', response_model=models.PlayerConfig, summary="Retrieve Players", response_description="A list of unique player names", tags=["Players"])
 async def api_players(_: User = Depends(permissions.user_permissions(permissions.players_view))):
     """
@@ -681,10 +688,13 @@ async def api_spotify_logout(user: User = Depends(permissions.user_permissions()
     return {"success": True}
 
 
-@app.get('/api/spotify/me', response_model=models.SpotifyMe, status_code=status.HTTP_200_OK, summary="Information about the connected account", response_description="The Spotify account info", tags=["Spotify"])
-async def api_spotify_me(user: User = Depends(permissions.user_permissions())):
+async def get_user_spotify_client(user: User) -> spotify.SpotifyClient:
     """
-    Information about the connected account
+    Gets the spotify client for the user
+
+    :param user: The user of the request
+    :return: The Spotify client
+    :raises HTTPException: if something is wrong
     """
 
     if user is None:
@@ -695,12 +705,20 @@ async def api_spotify_me(user: User = Depends(permissions.user_permissions())):
     if player.spotify_client.client is None:
         raise HTTPException(status_code=403, detail=f"Not logged into Spotify")
 
+    return player.spotify_client
+
+
+@app.get('/api/spotify/me', response_model=models.SpotifyMe, status_code=status.HTTP_200_OK, summary="Information about the connected account", response_description="The Spotify account info", tags=["Spotify"])
+async def api_spotify_me(user: User = Depends(permissions.user_permissions())):
+    """
+    Information about the connected account
+    """
+
+    sc = await get_user_spotify_client(user)
+
     try:
-        return {
-            "name": player.spotify_client.client.current_user()["display_name"]
-        }
+        return sc.get_me()
     except SpotifyOauthError:
-        player.spotify_client.logout()
         raise HTTPException(status_code=403, detail=f"Not logged into Spotify")
 
 
@@ -710,44 +728,12 @@ async def api_spotify_playlists(user: User = Depends(permissions.user_permission
     All saved Spotify playlists
     """
 
-    if user is None:
-        raise HTTPException(status_code=401, detail="You need to be logged in to use spotify.")
+    sc = await get_user_spotify_client(user)
 
-    player = await Player.get_by_id(str(user.id))
-
-    if (sp := player.spotify_client.client) is None:
+    try:
+        return sc.get_playlists()
+    except SpotifyOauthError:
         raise HTTPException(status_code=403, detail=f"Not logged into Spotify")
-
-    sp: spotipy.Spotify
-
-    limit = 50
-    offset = 0
-
-    playlists = []
-
-    while True:
-        try:
-            results = sp.current_user_playlists(limit=limit, offset=offset)
-        except SpotifyOauthError:
-            player.spotify_client.logout()
-            raise HTTPException(status_code=403, detail=f"Not logged into Spotify")
-
-        for item in results['items']:
-            playlists.append({
-                "id": item['id'],
-                "name": item['name'],
-                "image": item['images'][0].get("url") if item.get("images") else None,
-                "owner": item.get("owner", {}).get("display_name")
-            })
-
-        if results['next'] is None:
-            break
-
-        offset += limit
-
-    return {
-        "playlists": playlists
-    }
 
 
 @app.get('/api/spotify/playlists/{playlist_id}', response_model=models.SpotifyPlaylistItems, status_code=status.HTTP_200_OK, summary="The songs in the playlist, use /api/spotify/playlists/saved for the users saved songs", response_description="The songs in the playlist", tags=["Spotify"])
@@ -758,48 +744,12 @@ async def api_spotify_playlists_items(playlist_id: str, limit: int = 50, offset:
     If playlist_id is saved, the users saved songs will be used
     """
 
-    if user is None:
-        raise HTTPException(status_code=401, detail="You need to be logged in to use spotify.")
-
-    player = await Player.get_by_id(str(user.id))
-
-    if (sp := player.spotify_client.client) is None:
-        raise HTTPException(status_code=403, detail=f"Not logged into Spotify")
-
-    sp: spotipy.Spotify
-
-    songs = []
+    sc = await get_user_spotify_client(user)
 
     try:
-        if playlist_id == "saved":
-            results = sp.current_user_saved_tracks(limit=limit, offset=offset)
-        else:
-            results = sp.playlist_items(playlist_id, limit=limit, offset=offset)
+        return sc.get_playlist_items(playlist_id, limit=limit, offset=offset)
     except SpotifyOauthError:
-        player.spotify_client.logout()
         raise HTTPException(status_code=403, detail=f"Not logged into Spotify")
-
-    for item in results['items']:
-        # TODO: check if the song was already downloaded and mark those
-
-        if album := item['track'].get("album"):
-            image = album['images'][0].get("url") if album.get("images") else None
-        else:
-            image = item['track']['images'][0].get("url") if item['track'].get("images") else None
-
-        songs.append({
-            "id": item['track']['id'],
-            "name": item['track']['name'],
-            "image": image,
-            "artists": [a.get("name") for a in item['track']['artists']]
-        })
-
-    return {
-        "limit": results["limit"],
-        "offset": results["offset"],
-        "total": results["total"],
-        "songs": songs
-    }
 
 
 @app.websocket("/ws")

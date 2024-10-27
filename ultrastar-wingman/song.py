@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -8,11 +9,12 @@ import shutil
 import tempfile
 import time
 import uuid
+from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
 
 import chardet
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Set, Union
 
 import eyed3
 import httpx
@@ -31,7 +33,8 @@ class DownloadException(Exception):
 
 
 class Song:
-    songs = {}
+    songs: Dict[str, 'Song'] = {}
+    _song_title_artist_hash: Dict[str, Set['Song']] = defaultdict(set)
     usdb_ids = set()
     active_song_lock = asyncio.Lock()
     active_song: Optional['Song'] = None
@@ -421,6 +424,65 @@ class Song:
 
         return True
 
+    @staticmethod
+    def _split_artists(artists: str):
+        """
+        Takes artists as a string and splits them at substrings like comma, 'feat.', 'featuring', or ' x '
+
+        :param artists: The artists as a string
+        :return: A list of artists
+        """
+
+        split_chars = r",|feat\.|featuring| x "  # comma, 'feat.', 'featuring', or ' x '
+        result = re.split(split_chars, artists)
+
+        return [item.strip() for item in result]
+
+    @staticmethod
+    def _generate_title_artist_key(title: str, artist: str):
+        """
+        Normalizes the title and artist.
+
+        Special characters will be removed,
+        the text will be made lower case,
+        artists will be ordered alphabetically.
+
+        :param title: The title
+        :param artist: The artist as a string or a list of artists
+        :return: The key
+        """
+
+        normalize_pattern = r'[^a-zA-Z0-9]'
+
+        artist_str = re.sub(normalize_pattern, '', artist).lower()
+
+        title = re.sub(normalize_pattern, '', title.lower().replace("[duet]", "").strip()).lower()
+
+        return hashlib.md5((artist_str + title).encode()).hexdigest()
+
+    @classmethod
+    def lookup_song(cls, title: str, artist: Union[str, List[str]]) -> Set['Song']:
+        """
+        Gets all songs with the given title and artist.
+        The title and artist get normalized to ignore slightly different spellings
+        If multiple artists are given, each artist will be tried individually as well as all together
+
+        :param title: The title
+        :param artist: The artist as a string or a list of artists
+        :return: A list of found songs
+        """
+
+        if isinstance(artist, str):
+            artist = cls._split_artists(artist)
+
+        songs = set()
+
+        for a in artist:
+            for song in cls._song_title_artist_hash[cls._generate_title_artist_key(title, a)]:
+                songs.add(song)
+
+        return songs
+
     def __init__(self,
                  directory: str,
                  title: str,
@@ -461,6 +523,8 @@ class Song:
         self.id = id or usdb_id or uuid.uuid4().hex
 
         self.songs[str(self.id)] = self
+        for a in self._split_artists(self.artist):
+            self._song_title_artist_hash[self._generate_title_artist_key(self.title, a)].add(self)
 
         if usdb_id is not None:
             self.usdb_ids.add(usdb_id)
@@ -561,4 +625,3 @@ class Song:
             return await self._sing_song(self, players, force=force)
         else:
             return await self._sing_song(self, players, force=force, copy_to_main_songs_dir=True)
-

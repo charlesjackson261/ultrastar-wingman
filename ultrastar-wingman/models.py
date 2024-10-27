@@ -218,6 +218,7 @@ class SpotifySong(BaseModel):
     name: str = Field(description="The name of the track.")
     image: Optional[str] = Field(description="The url for the song cover.")
     artists: List[str] = Field(description="List of artists.")
+    downloaded_songs: List[Song] = Field(description="A list of already downloaded songs that match the name and artists.")
 
 
 class SpotifyPlaylistItems(BaseModel):

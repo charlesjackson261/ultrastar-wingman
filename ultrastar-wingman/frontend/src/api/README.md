@@ -154,6 +154,7 @@ Class | Method | HTTP request | Description
 *UltraStarWingman.SongsApi* | [**apiCoverApiSongsSongIdCoverGet**](docs/SongsApi.md#apiCoverApiSongsSongIdCoverGet) | **GET** /api/songs/{song_id}/cover | Api Cover
 *UltraStarWingman.SongsApi* | [**apiGetSongByIdApiSongsSongIdGet**](docs/SongsApi.md#apiGetSongByIdApiSongsSongIdGet) | **GET** /api/songs/{song_id} | Retrieve the song with the given id. Use id &#39;random&#39; for a random song or &#39;current&#39; for the currently playing song.
 *UltraStarWingman.SongsApi* | [**apiGetSongByIdApiSongsSongIdScoresGet**](docs/SongsApi.md#apiGetSongByIdApiSongsSongIdScoresGet) | **GET** /api/songs/{song_id}/scores | All the scores for a given song (matched by USDX Id, so the scores might belong to different files).
+*UltraStarWingman.SongsApi* | [**apiGetSongLookupApiSongLookupGet**](docs/SongsApi.md#apiGetSongLookupApiSongLookupGet) | **GET** /api/song_lookup | Searches for the given title and artist in the downloaded songs. Title and artist will be normalized to allow for slightly different spellings.
 *UltraStarWingman.SongsApi* | [**apiMp3ApiSongsSongIdMp3Get**](docs/SongsApi.md#apiMp3ApiSongsSongIdMp3Get) | **GET** /api/songs/{song_id}/mp3 | Api Mp3
 *UltraStarWingman.SongsApi* | [**apiSingSongApiSongsSongIdSingPost**](docs/SongsApi.md#apiSingSongApiSongsSongIdSingPost) | **POST** /api/songs/{song_id}/sing | Starts UltraStar Deluxe and loads the song
 *UltraStarWingman.SongsApi* | [**apiSongsApiSongsGet**](docs/SongsApi.md#apiSongsApiSongsGet) | **GET** /api/songs | Retrieve all downloaded songs

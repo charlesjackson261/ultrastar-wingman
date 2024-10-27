@@ -166,6 +166,54 @@ export default class SongsApi {
     }
 
     /**
+     * Callback function to receive the result of the apiGetSongLookupApiSongLookupGet operation.
+     * @callback module:api/SongsApi~apiGetSongLookupApiSongLookupGetCallback
+     * @param {String} error Error message, if any.
+     * @param {module:model/SongsResponse} data The data returned by the service call.
+     * @param {String} response The complete HTTP response.
+     */
+
+    /**
+     * Searches for the given title and artist in the downloaded songs. Title and artist will be normalized to allow for slightly different spellings.
+     * @param {String} title 
+     * @param {String} artist 
+     * @param {module:api/SongsApi~apiGetSongLookupApiSongLookupGetCallback} callback The callback function, accepting three arguments: error, data, response
+     * data is of type: {@link module:model/SongsResponse}
+     */
+    apiGetSongLookupApiSongLookupGet(title, artist, callback) {
+      let postBody = null;
+      // verify the required parameter 'title' is set
+      if (title === undefined || title === null) {
+        throw new Error("Missing the required parameter 'title' when calling apiGetSongLookupApiSongLookupGet");
+      }
+      // verify the required parameter 'artist' is set
+      if (artist === undefined || artist === null) {
+        throw new Error("Missing the required parameter 'artist' when calling apiGetSongLookupApiSongLookupGet");
+      }
+
+      let pathParams = {
+      };
+      let queryParams = {
+        'title': title,
+        'artist': artist
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = ['OAuth2PasswordBearer'];
+      let contentTypes = [];
+      let accepts = ['application/json'];
+      let returnType = SongsResponse;
+      return this.apiClient.callApi(
+        '/api/song_lookup', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null, callback
+      );
+    }
+
+    /**
      * Callback function to receive the result of the apiMp3ApiSongsSongIdMp3Get operation.
      * @callback module:api/SongsApi~apiMp3ApiSongsSongIdMp3GetCallback
      * @param {String} error Error message, if any.
