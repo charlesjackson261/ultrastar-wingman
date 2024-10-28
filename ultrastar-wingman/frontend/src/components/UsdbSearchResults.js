@@ -9,11 +9,11 @@ import {downloadFromUsdb, useDownloadQueue} from "../helpers";
 import {MdError} from "react-icons/md";
 import {IoTimerOutline} from "react-icons/io5";
 
-const UsdbSearchResults = ({songs}) => {
+const UsdbSearchResults = ({songs, setSelectedSong}) => {
     const [downloadQueue, setDownloadQueue] = useDownloadQueue();
 
     const getButton = (song) => {
-        if (song.downloaded || downloadQueue.finished.includes(song.id)) return <FaCheck className={"finished"}/>;
+        if (song.downloaded || downloadQueue.finished.hasOwnProperty(song.id)) return <FaCheck className={"finished"}/>;
         if (song.id in downloadQueue.failed) return <MdError className={"failed"}/>;
         if (downloadQueue.started.includes(song.id)) return <PulseLoader
             className={"started"}
@@ -36,7 +36,18 @@ const UsdbSearchResults = ({songs}) => {
                     coverUrl={`https://usdb.animux.de/data/cover/${song.id}.jpg`}
                     button={getButton(song)}
                     onClick={(e) => {
-                        if (song.downloaded || downloadQueue.finished.includes(song.id)) {
+                        if (song.downloaded || downloadQueue.finished.hasOwnProperty(song.id)) {
+                            if (setSelectedSong) {
+                                if (downloadQueue.finished.hasOwnProperty(song.id)) {
+                                    setSelectedSong(downloadQueue.finished[song.id]);
+                                } else {
+                                    setSelectedSong({
+                                        id: song.id,
+                                        title: song.title,
+                                        artist: song.artist
+                                    });
+                                }
+                            }
                         } else if (song.id in downloadQueue.failed) {
                             // TODO: custom modal
                             if (window.confirm(`FAILED TO DOWNLOAD - TRY AGAIN?\n--------------------------------\n${downloadQueue.failed[song.id]}\n--------------------------------\nFAILED TO DOWNLOAD - TRY AGAIN?`)) {

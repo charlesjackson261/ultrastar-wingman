@@ -10,6 +10,9 @@ import Spinner from "./Spinner";
 import Input from "./Input";
 import Button from "./Button";
 import './UsdbList.css';
+import PlayerSelection from "./PlayerSelection";
+import {useClientWishlist, useCurrentlyPlayingSong, useFavoriteIds} from "../helpers";
+import SongDetailsModal from "./SongDetailsModal";
 
 function UsdbList() {
     const [title, setTitle] = useState('');
@@ -19,6 +22,12 @@ function UsdbList() {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
+
+    const [playerSelectionSong, setPlayerSelectionSong] = useState(null);
+    const [currentlyPlayingSong, setCurrentlyPlayingSong] = useCurrentlyPlayingSong();
+    const [clientWishlist, setClientWishlist] = useClientWishlist();
+    const [favoriteIds, setFavoriteIds] = useFavoriteIds();
+    const [selectedSong, setSelectedSong] = useState(null);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -131,11 +140,34 @@ function UsdbList() {
             {loading && songs.length === 0 && <div className={"top-spinner"}>
                 <Spinner/>
             </div>}
-            <UsdbSearchResults songs={songs}/>
+            <UsdbSearchResults
+                songs={songs}
+                setSelectedSong={setSelectedSong}
+            />
             {error && <h1>{error}</h1>}
             {loading && songs.length !== 0 && <div className={"bottom-spinner"}>
                 <Spinner/>
             </div>}
+
+            {selectedSong && !playerSelectionSong &&
+                <SongDetailsModal
+                    song={selectedSong}
+                    onClose={() => setSelectedSong(null)}
+                    setPlayerSelectionSong={setPlayerSelectionSong}
+                    currentlyPlayingSong={currentlyPlayingSong}
+                    clientWishlist={clientWishlist}
+                    setClientWishlist={setClientWishlist}
+                    favoriteIds={favoriteIds}
+                    setFavoriteIds={setFavoriteIds}
+                />
+            }
+
+            {playerSelectionSong &&
+                <PlayerSelection
+                    song={playerSelectionSong}
+                    onClose={() => setPlayerSelectionSong(false)}
+                />
+            }
         </div>
     );
 }

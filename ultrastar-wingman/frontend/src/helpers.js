@@ -203,7 +203,7 @@ export function useDownloadQueue() {
     const [downloadQueue, setDownloadQueue] = useState({
         queued: [],
         started: [],
-        finished: [],
+        finished: {},
         failed: {}
     });
 
@@ -214,7 +214,7 @@ export function useDownloadQueue() {
             ...currentQueue,
             queued: [...currentQueue.queued],
             started: [...currentQueue.started],
-            finished: [...currentQueue.finished],
+            finished: {...currentQueue.finished},
             failed: {...currentQueue.failed}
         }
     }
@@ -237,7 +237,7 @@ export function useDownloadQueue() {
                     // skip if already started or finished
                     if (newDownloadQueue.started.includes(message.usdb_id)) {
                         return newDownloadQueue;
-                    } else if (newDownloadQueue.finished.includes(message.usdb_id)) {
+                    } else if (newDownloadQueue.finished.hasOwnProperty(message.usdb_id)) {
                         return newDownloadQueue;
                     }
 
@@ -270,7 +270,7 @@ export function useDownloadQueue() {
                     }
 
                     // skip if already finished
-                    if (newDownloadQueue.finished.includes(message.usdb_id)) {
+                    if (newDownloadQueue.finished.hasOwnProperty(message.usdb_id)) {
                         return newDownloadQueue;
                     }
 
@@ -305,8 +305,8 @@ export function useDownloadQueue() {
                     }
 
                     // add to finished
-                    if (!newDownloadQueue.finished.includes(message.usdb_id)) {
-                        newDownloadQueue.finished.push(message.usdb_id);
+                    if (!newDownloadQueue.finished.hasOwnProperty(message.usdb_id)) {
+                        newDownloadQueue.finished[message.usdb_id] = message;
                     }
 
                     setDownloadQueue(newDownloadQueue);
@@ -333,7 +333,7 @@ export function useDownloadQueue() {
                     }
 
                     // skip if already finished
-                    if (newDownloadQueue.finished.includes(message.usdb_id)) {
+                    if (newDownloadQueue.finished.hasOwnProperty(message.usdb_id)) {
                         return newDownloadQueue;
                     }
 

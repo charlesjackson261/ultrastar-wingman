@@ -3,9 +3,10 @@ import './SpotifySongDetailsModal.css';
 import React, {useEffect, useRef, useState} from "react";
 import Modal from "./Modal";
 import {Spotify} from "react-spotify-embed";
-import {SongsApi} from "../api/src";
+import {USDBApi} from "../api/src";
 import SongListItem from "./SongListItem";
-import {FaCheck} from "react-icons/fa";
+import UsdbSearchResults from "./UsdbSearchResults";
+import Spinner from "./Spinner";
 
 const SpotifySongDetailsModal = ({
                                      selectedSpotifySong,
@@ -16,18 +17,43 @@ const SpotifySongDetailsModal = ({
                                  }) => {
     const modalRef = useRef(null);
 
-    const [downloadedSongs, setDownloadedSongs] = useState([]);
+    const [usdbSongs, setUSDBSongs] = useState([]);
 
-    const songsApi = new SongsApi();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    // useEffect(() => {
-    //     songsApi.apiGetSongLookupApiSongLookupGet(selectedSpotifySong.name, selectedSpotifySong.artists, apiCallback(data => {
-    //         console.log(data);
-    //         setDownloadedSongs(data.songs);
-    //     }))
-    // }, [selectedSpotifySong]);
+    // const
+    console.log(selectedSpotifySong.downloaded_songs);
 
-    console.log(selectedSpotifySong);
+    const usdbIds = selectedSpotifySong.downloaded_songs
+        .filter(song => song.usdb_id) // Filter out items without usdb_id
+        .map(song => song.usdb_id);  // Map to list of usdb_ids
+
+    console.log(usdbIds);
+
+    const usdbApi = new USDBApi();
+
+    useEffect(() => {
+        usdbApi.apiUsdbSongsApiUsdbSongsGet({
+            // TODO: extra endpoint for some more queries including different artists
+            artist: selectedSpotifySong.artists[0],
+            title: selectedSpotifySong.name,
+            order: "rating",
+            ud: "desc",
+            limit: 100,
+            page: 1
+        }, (error, data, response) => {
+            console.log(data);
+            if (error) {
+                console.error(error, response.text);
+                setError(error + " - " + response.text);
+            } else {
+                setUSDBSongs(data.songs.filter(song => !usdbIds.includes(song.id)));
+
+                setLoading(false);
+            }
+        });
+    }, [selectedSpotifySong]);
 
     return (
         <Modal fullscreen={true} ref={modalRef} className={"spotify-song-detail-modal"} onClose={() => setSelectedSpotifySong(null)}>
@@ -42,6 +68,14 @@ const SpotifySongDetailsModal = ({
                     favoriteIds={favoriteIds}
                 />
             ))}
+
+            {usdbSongs.length > 0 && <h1>Download from USDB</h1>}
+            <UsdbSearchResults
+                songs={usdbSongs}
+                setSelectedSong={setSelectedSong}
+            />
+            {error && <h3>{error}</h3>}
+            {loading && usdbSongs.length !== 0 && <Spinner/>}
         </Modal>
     );
 };
