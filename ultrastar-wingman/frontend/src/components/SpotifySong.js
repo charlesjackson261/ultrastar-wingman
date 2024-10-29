@@ -8,6 +8,7 @@ function SpotifySong({
                          setSelectedSpotifySong
                      }) {
     return (
+        // TODO: mark as downloaded if downloaded after initial load
         <div key={song.id} className={`spotify-song ${song.downloaded_songs.length > 0 ? 'downloaded' : ''}`} onClick={() => setSelectedSpotifySong(song)}>
             <span className="image" style={{backgroundImage: `url('${song.image}')`}}/>
             <div className="details">

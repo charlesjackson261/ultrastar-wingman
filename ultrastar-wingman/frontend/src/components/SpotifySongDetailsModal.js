@@ -35,13 +35,13 @@ const SpotifySongDetailsModal = ({
 
     useEffect(() => {
         usdbApi.apiUsdbSongsApiUsdbSongsGet({
-            // TODO: extra endpoint for some more queries including different artists
-            artist: selectedSpotifySong.artists[0],
+            artistList: selectedSpotifySong.artists,
             title: selectedSpotifySong.name,
             order: "rating",
             ud: "desc",
             limit: 100,
-            page: 1
+            page: 1,
+            fuzzy: true
         }, (error, data, response) => {
             console.log(data);
             if (error) {

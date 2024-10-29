@@ -129,6 +129,7 @@ export default class USDBApi {
      * Search Songs
      * @param {Object} opts Optional parameters
      * @param {String} [artist] Filter songs by the artist's name.
+     * @param {Array.<String>} [artistList] Can only be used combined with fuzzy - will search for each artist individually and combine the results.
      * @param {String} [title] Filter songs by title.
      * @param {String} [edition] Filter by the song's edition.
      * @param {String} [language] Filter songs by language.
@@ -139,6 +140,7 @@ export default class USDBApi {
      * @param {Boolean} [songcheck = false)] 
      * @param {Number} [limit = 30)] The number of songs to return per page.
      * @param {Number} [page = 1)] Page number for pagination.
+     * @param {Boolean} [fuzzy = false)] If the search should be fuzzy. This will split things like 'remastered' from the title and searches for each artist individually. When using fuzzy, no proper paging will be available - make sure the query is tight enough to not include too many entries.
      * @param {module:api/USDBApi~apiUsdbSongsApiUsdbSongsGetCallback} callback The callback function, accepting three arguments: error, data, response
      * data is of type: {@link module:model/USDBSongsResponse}
      */
@@ -150,6 +152,7 @@ export default class USDBApi {
       };
       let queryParams = {
         'artist': opts['artist'],
+        'artist_list': this.apiClient.buildCollectionParam(opts['artistList'], 'multi'),
         'title': opts['title'],
         'edition': opts['edition'],
         'language': opts['language'],
@@ -159,7 +162,8 @@ export default class USDBApi {
         'golden': opts['golden'],
         'songcheck': opts['songcheck'],
         'limit': opts['limit'],
-        'page': opts['page']
+        'page': opts['page'],
+        'fuzzy': opts['fuzzy']
       };
       let headerParams = {
       };

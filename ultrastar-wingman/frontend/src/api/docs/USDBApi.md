@@ -118,6 +118,7 @@ OAuth2PasswordBearer.accessToken = 'YOUR ACCESS TOKEN';
 let apiInstance = new UltraStarWingman.USDBApi();
 let opts = {
   'artist': "artist_example", // String | Filter songs by the artist's name.
+  'artistList': ["null"], // [String] | Can only be used combined with fuzzy - will search for each artist individually and combine the results.
   'title': "title_example", // String | Filter songs by title.
   'edition': "edition_example", // String | Filter by the song's edition.
   'language': "language_example", // String | Filter songs by language.
@@ -127,7 +128,8 @@ let opts = {
   'golden': false, // Boolean | 
   'songcheck': false, // Boolean | 
   'limit': 30, // Number | The number of songs to return per page.
-  'page': 1 // Number | Page number for pagination.
+  'page': 1, // Number | Page number for pagination.
+  'fuzzy': false // Boolean | If the search should be fuzzy. This will split things like 'remastered' from the title and searches for each artist individually. When using fuzzy, no proper paging will be available - make sure the query is tight enough to not include too many entries.
 };
 apiInstance.apiUsdbSongsApiUsdbSongsGet(opts, (error, data, response) => {
   if (error) {
@@ -144,6 +146,7 @@ apiInstance.apiUsdbSongsApiUsdbSongsGet(opts, (error, data, response) => {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **artist** | **String**| Filter songs by the artist&#39;s name. | [optional] 
+ **artistList** | [**[String]**](String.md)| Can only be used combined with fuzzy - will search for each artist individually and combine the results. | [optional] 
  **title** | **String**| Filter songs by title. | [optional] 
  **edition** | **String**| Filter by the song&#39;s edition. | [optional] 
  **language** | **String**| Filter songs by language. | [optional] 
@@ -154,6 +157,7 @@ Name | Type | Description  | Notes
  **songcheck** | **Boolean**|  | [optional] [default to false]
  **limit** | **Number**| The number of songs to return per page. | [optional] [default to 30]
  **page** | **Number**| Page number for pagination. | [optional] [default to 1]
+ **fuzzy** | **Boolean**| If the search should be fuzzy. This will split things like &#39;remastered&#39; from the title and searches for each artist individually. When using fuzzy, no proper paging will be available - make sure the query is tight enough to not include too many entries. | [optional] [default to false]
 
 ### Return type
 

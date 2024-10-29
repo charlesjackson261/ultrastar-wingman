@@ -19,10 +19,12 @@ users_avatars_dir = os.path.join(users_dir, "avatars")
 os.makedirs(users_avatars_dir, exist_ok=True)
 
 _parser.add_argument("-c", "--config", help="The config file (default: ./config.ini)", default=os.path.join(config_dir, "config.ini"), required=False)
+_parser.add_argument("--no-ui", help="Do not open the ui", action='count', required=False)
 
 _args = _parser.parse_args()
 
 file_name = _args.config
+no_ui = bool(_args.no_ui)
 
 if not os.path.isfile(file_name):
     if os.environ.get("IS_WINDOWS_INSTALLATION") == "true":

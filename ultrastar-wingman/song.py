@@ -333,7 +333,9 @@ class Song:
         Searches through the songs for the song with the given artist and title.
         If multiple songs are found, returns the first one.
         Returns None if no song was found.
-        This is needed for the scores as Ultrastar Deluxe is not bothered to save any good identifier for the scores
+        This is needed for the scores as Ultrastar Deluxe is not bothered to save any good identifier for the scores.
+
+        Not fuzzy
 
         :param artist: The artist
         :param title: The title
@@ -461,7 +463,7 @@ class Song:
             title = title.rsplit(' - ', 1)[0]
         title = title.replace("[duet]", "")
         title = title.strip()
-        title = re.sub(normalize_pattern, '', title).lower()
+        title = re.sub(normalize_pattern, '', title)
 
         return hashlib.md5((artist_str + title).encode()).hexdigest()
 

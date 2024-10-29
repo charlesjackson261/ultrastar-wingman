@@ -191,6 +191,7 @@ async def proxy(request: Request, path: Optional[str] = '', _: User = Depends(pe
 @app.get('/api/usdb/songs', response_model=models.USDBSongsResponse, tags=["USDB"], summary="Search Songs", response_description="A list of songs matching the criteria")
 async def api_usdb_songs(
         artist: str = Query(None, nullable=True, description="Filter songs by the artist's name."),
+        artist_list: List[str] = Query(None, nullable=True, description="Can only be used combined with fuzzy - will search for each artist individually and combine the results."),
         title: str = Query(None, nullable=True, description="Filter songs by title."),
         edition: str = Query(None, nullable=True, description="Filter by the song's edition."),
         language: str = Query(None, nullable=True, description="Filter songs by language."),
@@ -201,26 +202,71 @@ async def api_usdb_songs(
         songcheck: bool = False,
         limit: int = Query(30, description="The number of songs to return per page."),
         page: int = Query(1, description="Page number for pagination."),
+        fuzzy: bool = Query(False, description="If the search should be fuzzy. This will split things like 'remastered' from the title and searches for each artist individually. When using fuzzy, no proper paging will be available - make sure the query is tight enough to not include too many entries."),
         _: User = Depends(permissions.user_permissions(permissions.usdb_browse))
 ):
-    songs = await usdb.get_songs(
-        artist,
-        title,
-        edition,
-        language,
-        genre,
-        order,
-        ud,
-        golden,
-        songcheck,
-        limit,
-        page
-    )
+    if not fuzzy:
+        if artist_list is not None:
+            raise HTTPException(status_code=400, detail="artist_list must be combined with fuzzy")
 
-    for song in songs["songs"]:
-        song["downloaded"] = song["id"] in Song.usdb_ids
+        songs = await usdb.get_songs(
+            artist,
+            title,
+            edition,
+            language,
+            genre,
+            order,
+            ud,
+            golden,
+            songcheck,
+            limit,
+            page
+        )
 
-    return songs
+        for song in songs["songs"]:
+            song["downloaded"] = song["id"] in Song.usdb_ids
+
+        return songs
+    else:
+        if artist_list is None:
+            artist_list = [artist]
+
+        songs: Optional[dict] = None
+        ids = set()
+
+        title = title.lower()
+        if ' - ' in title:
+            title = title.rsplit(' - ', 1)[0]
+        title = title.strip()
+
+        for artist in artist_list:
+            new_songs = await usdb.get_songs(
+                artist,
+                title,
+                edition,
+                language,
+                genre,
+                order,
+                ud,
+                golden,
+                songcheck,
+                limit,
+                page
+            )
+
+            if songs is None:
+                songs = new_songs
+                ids = set(song["id"] for song in new_songs["songs"])
+            else:
+                for song in new_songs["songs"]:
+                    if song["id"] not in ids:
+                        songs["songs"].append(song)
+                        ids.add(song["id"])
+
+        for song in songs["songs"]:
+            song["downloaded"] = song["id"] in Song.usdb_ids
+
+        return songs
 
 
 def get_client_identifier(request: Request) -> str:
@@ -826,7 +872,8 @@ async def main():
     Song.load_songs()
 
     # Open browser
-    asyncio.create_task(open_browser())
+    if not config.no_ui:
+        asyncio.create_task(open_browser())
 
     # start the server
     server_config = uvicorn.Config(app="main:app", host="0.0.0.0", port=8080, log_level="info")
