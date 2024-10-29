@@ -31,3 +31,7 @@
 .usdb-list h2 {
     margin-top: 32px;
 }
+
+.usdb-list .songs-list {
+    padding: 0 16px;
+}

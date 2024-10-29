@@ -52,3 +52,7 @@
 .songs-search > div {
     position: relative;
 }
+
+.songs-page .songs-list {
+    padding: 0 16px;
+}
