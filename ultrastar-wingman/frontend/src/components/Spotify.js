@@ -74,6 +74,37 @@ function Spotify() {
         }
     }, [selectedPlaylist, playlistOffset, playlistItemsLoading, hasMorePlayListItems])
 
+    useEffect(() => {
+        // Set up an event listener for the popstate event
+        const handlePopState = (event) => {
+            console.log(event);
+            if (event.state && event.state.selectedPlaylist && false) {
+                setSelectedPlaylist(event.state.selectedPlaylist);
+            } else {
+                setSelectedPlaylist(null);
+                setPlaylistItems(null);
+                setPlaylistOffset(0);
+                setPlaylistItemsLoading(false);
+                setHasMorePlayListItems(true);
+                setSelectedSpotifySong(null);
+                setPlayerSelectionSong(null);
+                setSelectedSong(null);
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        // Clean up the event listener when the component unmounts
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, []);
+
+    const setSelectedPlaylistWithHistory = playlist => {
+        setSelectedPlaylist(playlist);
+        window.history.pushState({selectedPlaylist: playlist}, '');
+    };
+
     if (spotifyMe === null || spotifyPlaylists === null) {
         // still loading
         return (
@@ -151,7 +182,7 @@ function Spotify() {
                             id={"saved"}
                             name={"Liked Songs"}
                             owner={spotifyMe.name}
-                            setSelectedPlaylist={setSelectedPlaylist}
+                            setSelectedPlaylist={setSelectedPlaylistWithHistory}
                         />
                         {spotifyPlaylists.map(playlist => (
                             <SpotifyAlbum
@@ -159,7 +190,7 @@ function Spotify() {
                                 name={playlist.name}
                                 image={playlist.image}
                                 owner={playlist.owner}
-                                setSelectedPlaylist={setSelectedPlaylist}
+                                setSelectedPlaylist={setSelectedPlaylistWithHistory}
                             />
                         ))}
                     </div>
