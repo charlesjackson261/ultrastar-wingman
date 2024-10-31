@@ -38,6 +38,10 @@
     z-index: 10000;
 }
 
+.modal-backdrop > .close * {
+    pointer-events: none;
+}
+
 .modal-content {
     width: 100%;
     padding: 16px;

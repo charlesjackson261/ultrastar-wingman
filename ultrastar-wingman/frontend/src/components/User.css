@@ -36,3 +36,7 @@
     font-size: 1em;
     font-weight: normal;
 }
+
+.user-page > .button {
+    margin: 16px auto;
+}

@@ -203,13 +203,6 @@ settings_view = Permission(
     AccessLevel.manager
 )
 
-settings_edit = Permission(
-    "settings.edit",
-    "Edit Settings",
-    "Allows the user to edit these settings and user permissions",
-    AccessLevel.admin
-)
-
 permissions_edit = Permission(
     "permissions.edit",
     "Edit Permissions",

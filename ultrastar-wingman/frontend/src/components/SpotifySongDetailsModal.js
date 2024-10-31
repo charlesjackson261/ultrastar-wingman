@@ -43,9 +43,7 @@ const SpotifySongDetailsModal = ({
             page: 1,
             fuzzy: true
         }, (error, data, response) => {
-            console.log(data);
             if (error) {
-                console.error(error, response.text);
                 setError(error + " - " + response.text);
             } else {
                 setUSDBSongs(data.songs.filter(song => !usdbIds.includes(song.id)));
@@ -76,6 +74,8 @@ const SpotifySongDetailsModal = ({
             />
             {error && <h3>{error}</h3>}
             {loading && usdbSongs.length !== 0 && <Spinner/>}
+
+            {!loading && !error && selectedSpotifySong.downloaded_songs.length === 0 && usdbSongs.length === 0 && <h1>No Results Found</h1>}
         </Modal>
     );
 };

@@ -13,6 +13,7 @@ const User = () => {
     const [user, setUser] = useUser();
     const [permissions, setPermissions] = usePermissions()
     const [editPermissionsOpen, setEditPermissionsOpen] = useState(false);
+    const [editPlayersOpen, setEditPlayersOpen] = useState(false);
 
     const fileInputRef = useRef(null);
     const avatarRef = useRef(null);
@@ -65,9 +66,18 @@ const User = () => {
             <Button onClick={() => logout(() => setUser(null))}>Log Out</Button>
         </div>
 
-        <Button onClick={() => setEditPermissionsOpen(true)}>Edit Permissions</Button>
+        <h1>Connected Accounts</h1>
 
         <SpotifyAccount/>
+
+        {((user.access_level >= permissions.permissions["permissions.edit"].min_access_level) ||
+        (user.access_level >= permissions.permissions["players.edit"].min_access_level)) &&
+            <h1>Admin Controls</h1>
+        }
+
+        {user.access_level >= permissions.permissions["permissions.edit"].min_access_level &&
+            <Button onClick={() => setEditPermissionsOpen(true)}>Edit Permissions</Button>
+        }
 
         {editPermissionsOpen && user.access_level >= permissions.permissions["permissions.edit"].min_access_level &&
             <Modal
@@ -80,6 +90,10 @@ const User = () => {
                     accessLevels={permissions.access_levels}
                 />
             </Modal>
+        }
+
+        {user.access_level >= permissions.permissions["players.edit"].min_access_level &&
+            <Button onClick={() => setEditPlayersOpen(true)}>Manage Players</Button>
         }
     </div>;
 };
