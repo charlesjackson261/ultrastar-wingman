@@ -202,7 +202,7 @@ class Player:
             self._id = str(self.user.id)
 
         # save the token from this somewhere?
-        self._spotify_client = SpotifyClient()
+        self._spotify_client = SpotifyClient(self._id)
 
     def __str__(self) -> str:
         return self._name

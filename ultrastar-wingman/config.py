@@ -17,6 +17,8 @@ if os.environ.get("IS_WINDOWS_INSTALLATION") == "true":
 users_dir = os.path.join(config_dir, "users")
 users_avatars_dir = os.path.join(users_dir, "avatars")
 os.makedirs(users_avatars_dir, exist_ok=True)
+users_spotify_tokens_dir = os.path.join(users_dir, "spotify_tokens")
+os.makedirs(users_spotify_tokens_dir, exist_ok=True)
 
 _parser.add_argument("-c", "--config", help="The config file (default: ./config.ini)", default=os.path.join(config_dir, "config.ini"), required=False)
 _parser.add_argument("--no-ui", help="Do not open the ui", action='count', required=False)

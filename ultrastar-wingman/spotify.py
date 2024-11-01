@@ -1,4 +1,8 @@
+import logging
+import os
 from typing import Optional
+
+from spotipy import CacheFileHandler
 from spotipy.oauth2 import SpotifyOAuth, SpotifyOauthError
 
 import spotipy
@@ -6,12 +10,14 @@ import spotipy
 import config
 
 
-def _create_auth_manager():
+def _create_auth_manager(token_path):
     return SpotifyOAuth(
         client_id=config.spotify_client_id,
         client_secret=config.spotify_client_secret,
         redirect_uri=f"{config.client_url.rstrip('/')}/spotify/callback",
-        scope="user-library-read,playlist-read-private,playlist-read-collaborative"
+        scope="user-library-read,playlist-read-private,playlist-read-collaborative",
+        cache_path=token_path,
+        open_browser = False
     )
 
 
@@ -22,12 +28,20 @@ class SpotifyClient:
     To use this, <config.client_url>/spotify/callback must be added as a Redirect URI in https://developer.spotify.com/dashboard
     """
 
-    def __init__(self):
-        # TODO: save the tokens to keep them even after restarts?
-        # TODO: otherwise just remove the file CacheHandler as it does not work with multiple accounts
-        self._auth_manager = _create_auth_manager()
+    def __init__(self, user_id: str):
+        self.user_id: str = user_id
+        self._token_cache_path = os.path.join(config.users_spotify_tokens_dir, self.user_id)
+
+        self._auth_manager = _create_auth_manager(self._token_cache_path)
 
         self._client: Optional[spotipy.Spotify] = None
+
+        if os.path.exists(self._token_cache_path):
+            # try to connect using cached token
+            try:
+                self._client = spotipy.Spotify(auth_manager=self._auth_manager)
+            except Exception as e:
+                logging.exception("Failed to load spotify token from cache")
 
     def get_authorize_url(self) -> str:
         """
@@ -57,7 +71,7 @@ class SpotifyClient:
         If not logged in, nothing happens.
         """
 
-        self._auth_manager = _create_auth_manager()
+        self._auth_manager = _create_auth_manager(self._token_cache_path)
 
         self._client = None
 
