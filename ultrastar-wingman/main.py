@@ -683,14 +683,10 @@ async def api_spotify_authorize(user: User = Depends(permissions.user_permission
     Gets the url to access for the authorization code
     """
 
-    print(user, type(user))
-
     if user is None:
         raise HTTPException(status_code=401, detail="You need to be logged in to use spotify.")
 
     player = await Player.get_by_id(str(user.id))
-
-    print(player)
 
     return {
         "authorize_url": player.spotify_client.get_authorize_url()

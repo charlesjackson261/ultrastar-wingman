@@ -1,5 +1,6 @@
 import logging
 import os
+from statistics import pstdev
 from typing import Optional
 
 from spotipy import CacheFileHandler
@@ -74,6 +75,11 @@ class SpotifyClient:
         self._auth_manager = _create_auth_manager(self._token_cache_path)
 
         self._client = None
+
+        try:
+            os.remove(self._token_cache_path)
+        except FileNotFoundError:
+            pass
 
     @property
     def client(self) -> Optional[spotipy.Spotify]:
