@@ -76,10 +76,8 @@ setup_colors = _config.get("SETUP", "colors").split(",")
 client_url = _config.get("SETUP", "client_url")
 
 if os.environ.get("IS_WINDOWS_INSTALLATION") == "true":
-    youtube_dl = os.path.join(SCRIPT_BASE_PATH, "executables", "yt-dlp.exe")
     ffmpeg = os.path.join(SCRIPT_BASE_PATH, "executables", "ffmpeg.exe")
 else:
-    youtube_dl = _config.get("OTHER", "youtube_dl")
     ffmpeg = _config.get("OTHER", "ffmpeg")
 
 spotify_client_id = _config.get("SPOTIFY", "client_id")

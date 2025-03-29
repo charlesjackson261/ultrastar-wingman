@@ -13,7 +13,6 @@ colors = gray,dark_blue,yellow,flame
 client_url = http://192.168.178.42:8080
 
 [OTHER]
-youtube_dl = executables/yt-dlp.exe
 ffmpeg = executables/ffmpeg.exe
 
 [SPOTIFY]

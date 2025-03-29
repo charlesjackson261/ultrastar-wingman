@@ -18,6 +18,7 @@ from typing import Optional, List, Dict, Set, Union
 
 import eyed3
 import httpx
+import yt_dlp
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
@@ -261,25 +262,15 @@ class Song:
             if process.returncode != 0:
                 raise DownloadException(f"cover download failed with code {process.returncode}, stdout: {stdout.decode()}, stderr: {stderr.decode()}")
 
-            # print(tempdir)
-            # import time
-            # time.sleep(200)
+            ydl_opts = {
+                "format": "mp4",
+                "outtmpl": os.path.join(tempdir, "video.mp4"),
+            }
 
-            # try:
-            #     subprocess.run(["curl", "-o", "cover.jpg", f"https://usdb.animux.de/data/cover/{id}.jpg"], cwd=tempdir, check=True)
-            # except Exception as e:
-            #     raise DownloadException(f"cover download failed: {e}")
-
-            process = await asyncio.create_subprocess_exec(
-                config.youtube_dl, "-o", "video.mp4", "--format", "mp4", url,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                cwd=tempdir
-            )
-            stdout, stderr = await process.communicate()
-
-            if process.returncode != 0:
-                raise DownloadException(f"youtube-dl failed with code {process.returncode}, stdout: {stdout.decode()}, stderr: {stderr.decode()}")
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                errors = ydl.download(url)
+                if errors:
+                    raise DownloadException(f"youtube download failed with errors: {errors}")
 
             process = await asyncio.create_subprocess_exec(
                 config.ffmpeg, "-i", "video.mp4", "-vn", "-acodec", "libmp3lame", "-ac", "2", "-ab", "160k", "-ar", "48000", "song.mp3",
