@@ -263,7 +263,7 @@ class Song:
                 raise DownloadException(f"cover download failed with code {process.returncode}, stdout: {stdout.decode()}, stderr: {stderr.decode()}")
 
             ydl_opts = {
-                "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
+                "format": "bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]",
                 "outtmpl": os.path.join(tempdir, "video.mp4"),
             }
 
