@@ -161,7 +161,7 @@ class Song:
             with open(path, "r") as file:
                 data = json.load(file)
 
-            # that check that all the required data is present
+            # check that all the required data is present
             if all({key: (key in data) for key in ["title", "artist", "cover", "mp3"]}.values()):
                 return cls(directory=directory, **data)
 
@@ -518,7 +518,12 @@ class Song:
         else:
             self.cover_path = None
 
-        self.id = id or usdb_id or uuid.uuid4().hex
+        self.id = id or f"USDB-{usdb_id}" or uuid.uuid4().hex
+
+        # migrate old usdb ids to new format
+        if self.id == usdb_id:
+            self.id = f"USDB-{usdb_id}"
+            self.save_metadata()
 
         self.songs[str(self.id)] = self
         for a in self._split_artists(self.artist):

@@ -45,5 +45,3 @@ def check_new_release(repo: str, current_version: Optional[str] = None, asset_na
     except Exception as e:
         logging.error(f"Error fetching newest release version for {url}: {e}")
         return None
-
-# TODO: use this to automatically download new version of yt-dlp
