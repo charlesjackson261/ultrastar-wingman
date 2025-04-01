@@ -191,7 +191,8 @@ class Song:
             #     raise DownloadException(f"cover download failed: {e}")
 
             process = await asyncio.create_subprocess_exec(
-                config.youtube_dl, "-o", "video.mp4", "--format", "mp4", url,
+                # config.youtube_dl, "-o", "video.mp4", "--format", "mp4", url,
+                config.youtube_dl, "-o", "video.mp4", "-f", "136+140", url,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=tempdir
@@ -206,6 +207,9 @@ class Song:
             # except Exception as e:
             #     raise DownloadException(f"youtube-dl failed: {e}")
 
+
+            # BUG: failing on extracting the audio from the music video
+            # process = await asyncio.create_subprocess_shell(
             process = await asyncio.create_subprocess_exec(
                 config.ffmpeg, "-i", "video.mp4", "-vn", "-acodec", "libmp3lame", "-ac", "2", "-ab", "160k", "-ar", "48000", "song.mp3",
                 stdout=asyncio.subprocess.PIPE,

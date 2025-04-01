@@ -103,6 +103,8 @@ def get_songs(artist: Optional[str] = None, title: Optional[str] = None, edition
         # Extract table data (td) from each row
         tds = row.select("td")
 
+        rating = len(tds[8].select("img[src='images/star.png']")) + 0.5 * len(tds[8].select("img[src='images/half_star.png']"))
+
         # Extracting relevant information from each td and adding to a dictionary
         row_data = {
             "id": int(tds[0].get_attribute_list("onclick")[0].split("(")[-1].rstrip(")")),
@@ -110,9 +112,12 @@ def get_songs(artist: Optional[str] = None, title: Optional[str] = None, edition
             "title": tds[1].get_text(strip=True),
             "edition": tds[2].get_text(strip=True),
             "golden": tds[3].get_text(strip=True) == "Ja",
-            "language": tds[4].get_text(strip=True),
-            "rating": len(tds[5].select("img[src='images/star.png']")) + 0.5 * len(tds[5].select("img[src='images/half_star.png']")),
-            "views": int(tds[6].get_text(strip=True))
+            # "language": tds[4].get_text(strip=True),
+            "language": tds[6].get_text(strip=True),
+            # "rating": len(tds[5].select("img[src='images/star.png']")) + 0.5 * len(tds[5].select("img[src='images/half_star.png']")),
+            "rating": rating,
+            "views": int(tds[9].get_text(strip=True))
+            # "views": 0
         }
 
         # Add the dictionary to the list
