@@ -8,6 +8,11 @@ import platform
 import signal
 import subprocess
 import threading
+import tkinter as tk
+from tkinter import ttk
+from PIL import Image, ImageTk, ImageDraw, ImageFont
+import qrcode
+import socket
 
 import websockets
 from flask import render_template, Flask, request, send_file
@@ -205,6 +210,71 @@ def submit_names():
     return {"success": True}
 
 
+def show_access_info():
+    # Get network URL
+    network_url = f'http://192.168.86.44:8080'
+    
+    message = f"""Access the application at:
+
+Network URL: {network_url}
+
+You can also scan this QR code:"""
+    
+    # Create QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    
+    # Generate QR code with network URL
+    qr.add_data(f'Network: {network_url}')
+    qr.make(fit=True)
+    
+    # Create image with a label
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Convert QR code image to PIL Image
+    qr_img = qr_img._img.convert('RGB')
+    
+    # Create a new image with extra space for the label
+    width, height = qr_img.size
+    new_height = height + 40  # Add space for the label
+    new_img = Image.new('RGB', (width, new_height), 'white')
+    
+    # Paste the QR code into the new image
+    new_img.paste(qr_img, (0, 20, width, height + 20))  # Use box coordinates
+    
+    # Draw the label
+    draw = ImageDraw.Draw(new_img)
+    font = ImageFont.truetype("arial.ttf", 16)
+    label = "Scan to Access"
+    
+    # Get text size
+    bbox = draw.textbbox((0, 0), label, font=font)
+    label_width = bbox[2] - bbox[0]
+    label_height = bbox[3] - bbox[1]
+    
+    # Center the label
+    x = (width - label_width) // 2
+    y = 0
+    draw.text((x, y), label, fill="black", font=font)
+    
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
+        new_img.save(temp_file.name)
+        temp_file.flush()
+        
+        # Show message box with the URLs and QR code
+        import subprocess
+        subprocess.Popen(['start', temp_file.name], shell=True)
+        
+        # Print URL to terminal as backup
+        print("\n" + message + "\n")
+        print("QR code has been saved to:", temp_file.name)
+
+
 def main():
     username = config.usdb_user
     password = config.usdb_pass
@@ -238,7 +308,17 @@ def main():
     usdx.change_config(config.setup_colors)
     restart_usdx()
 
-    threading.Thread(target=app.run, kwargs={"host": "0.0.0.0", "port": 8080}).start()
+    # Start Flask server in a thread
+    server_thread = threading.Thread(target=app.run, kwargs={"host": "0.0.0.0", "port": 8080})
+    server_thread.daemon = True
+    server_thread.start()
+
+    # Wait a moment for the server to start
+    import time
+    time.sleep(1)
+
+    # Show access info
+    show_access_info()
 
     Song.load_songs()
     server = WebSocketServer(download_queue)
