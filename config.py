@@ -30,9 +30,10 @@ _config = configparser.RawConfigParser()
 _config.read(file_name)
 
 usdx_path = Path(_config.get("USDX", "usdx_path")).expanduser()
-usdx_config_file = Path(_config.get("USDX", "usdx_config_file")).expanduser()
-usdx_songs_dir = Path(_config.get("USDX", "usdx_songs_dir")).expanduser()
 usdx_avatars_dir = Path(_config.get("USDX", "usdx_avatars_dir")).expanduser()
+usdx_songs_dir = Path(_config.get("USDX", "usdx_songs_dir")).expanduser()
+network_songs_dir = Path(_config.get("USDX", "network_songs_dir", fallback="\\retropie\songs")).expanduser()
+usdx_config_file = Path(_config.get("USDX", "usdx_config_file")).expanduser()
 
 usdb_user = _config.get("USDB", "username")
 usdb_pass = _config.get("USDB", "password")

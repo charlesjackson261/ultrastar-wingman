@@ -2,11 +2,13 @@ window.addEventListener("DOMContentLoaded", () => {
     const websocket = new WebSocket(`ws://${window.location.hostname}:5678/`);
     websocket.onmessage = ({data}) => {
         let msg = JSON.parse(data);
+        if (msg.source) {
+            msg.msg += ` (${msg.source})`;
+        }
         addConsoleMessage(msg.msg, msg.type === "error");
     };
 
 });
-
 
 function restart() {
     if (confirm('Are you sure you want to restart UltraStar Deluxe? Be aware that you will be punched if you interrupt a song.')) {

@@ -45,7 +45,8 @@ class WebSocketServer:
         # TODO: not actually threaded
         await self.send_to_clients({
             "msg": f"[Downloader {i}] Ready",
-            "type": "log"
+            "type": "log",
+            "source": "local"
         })
 
         while True:
@@ -53,7 +54,8 @@ class WebSocketServer:
 
             await self.send_to_clients({
                 "msg": f"[Downloader {i}] Starting download for {id}",
-                "type": "log"
+                "type": "log",
+                "source": "local"
             })
 
             try:
@@ -61,11 +63,13 @@ class WebSocketServer:
 
                 await self.send_to_clients({
                     "msg": f"[Downloader {i}] Successfully downloaded {song}",
-                    "type": "log"
+                    "type": "log",
+                    "source": song.source
                 })
             except Exception as e:
                 logging.exception("Download failed")
                 await self.send_to_clients({
                     "msg": f"[Downloader {i}] Download for {id} failed: {e}",
-                    "type": "error"
+                    "type": "error",
+                    "source": "local"
                 })

@@ -46,70 +46,90 @@ class Song:
 
     @classmethod
     def load_songs(cls):
-        for subdir in os.listdir(config.usdx_songs_dir):
-            subdir_path = os.path.join(config.usdx_songs_dir, subdir)
+        # Check local path first
+        local_songs_dir = config.usdx_songs_dir
+        network_songs_dir = config.network_songs_dir if hasattr(config, 'network_songs_dir') else None
 
-            if not os.path.isdir(subdir_path):
-                continue
+        # Try to load from local path
+        try:
+            for subdir in os.listdir(local_songs_dir):
+                subdir_path = os.path.join(local_songs_dir, subdir)
+                cls._process_song_directory(subdir_path)
+        except Exception as e:
+            logging.error(f"Error loading songs from local path {local_songs_dir}: {e}")
 
-            try:
-                usdb_id = None
-                if os.path.isfile(os.path.join(subdir_path, "usdb_data.json")):
-                    with open(os.path.join(subdir_path, "usdb_data.json")) as file:
-                        usdb_data = json.loads(file.read())
-                        usdb_id = usdb_data.get("id")
+        # Try to load from network path
+        try:
+            for subdir in os.listdir(network_songs_dir):
+                subdir_path = os.path.join(network_songs_dir, subdir)
+                cls._process_song_directory(subdir_path)
+        except Exception as e:
+            logging.error(f"Error loading songs from network path {network_songs_dir}: {e}")
 
-                txt_files = [f for f in os.listdir(subdir_path) if f.endswith('.txt')]
+    @classmethod
+    def _process_song_directory(cls, subdir_path):
+        """Helper method to process a single song directory"""
+        if not os.path.isdir(subdir_path):
+            return
 
-                if not txt_files:
-                    continue
+        try:
+            usdb_id = None
+            if os.path.isfile(os.path.join(subdir_path, "usdb_data.json")):
+                with open(os.path.join(subdir_path, "usdb_data.json")) as file:
+                    usdb_data = json.loads(file.read())
+                    usdb_id = usdb_data.get("id")
 
-                try:
-                    txt_path = os.path.join(subdir_path, txt_files[0])
+            txt_files = [f for f in os.listdir(subdir_path) if f.endswith('.txt')]
 
-                    with open(txt_path, 'rb') as file:
-                        encoding = chardet.detect(file.read())['encoding']
+            if not txt_files:
+                return
 
-                    if encoding != 'utf-8':
-                        logging.warning(f"Wrong encoding. Is {encoding} instead of utf-8 for '{os.path.join(subdir_path, txt_files[0])}'")
+            txt_path = os.path.join(subdir_path, txt_files[0])
 
-                    with open(txt_path, 'r', encoding=encoding) as file:
-                        txt = file.read()
+            with open(txt_path, 'rb') as file:
+                encoding = chardet.detect(file.read())['encoding']
 
-                        match = re.search(r'#TITLE:(.*)\n', txt)
-                        if match:
-                            title = match.group(1)
-                        else:
-                            logging.warning(f"No title for {subdir_path}")
-                            continue
+            if encoding != 'utf-8':
+                logging.warning(f"Wrong encoding. Is {encoding} instead of utf-8 for '{os.path.join(subdir_path, txt_files[0])}'")
 
-                        match = re.search(r'#ARTIST:(.*)\n', txt)
-                        if match:
-                            artist = match.group(1)
-                        else:
-                            logging.warning(f"No artist for {subdir_path}")
-                            continue
+            with open(txt_path, 'r', encoding=encoding) as file:
+                txt = file.read()
 
-                        match = re.search(r'#COVER:(.*)\n', txt)
-                        cover = None
-                        if match:
-                            cover = match.group(1)
+            match = re.search(r'#TITLE:(.*)\n', txt)
+            if match:
+                title = match.group(1)
+            else:
+                logging.warning(f"No title for {subdir_path}")
+                return
 
-                        match = re.search(r'#MP3:(.*)\n', txt)
-                        mp3 = None
-                        if match:
-                            mp3 = match.group(1)
+            match = re.search(r'#ARTIST:(.*)\n', txt)
+            if match:
+                artist = match.group(1)
+            else:
+                logging.warning(f"No artist for {subdir_path}")
+                return
 
-                        cls(subdir_path, title, artist, usdb_id, cover, mp3)
-                except:
-                    logging.exception(f"Could not process song in '{subdir_path}'")
-            except:
-                logging.exception(f"Could not process song in '{subdir_path}'")
+            match = re.search(r'#COVER:(.*)\n', txt)
+            cover = None
+            if match:
+                cover = match.group(1)
+
+            match = re.search(r'#MP3:(.*)\n', txt)
+            mp3 = None
+            if match:
+                mp3 = match.group(1)
+
+            cls(subdir_path, title, artist, usdb_id, cover, mp3)
+        except Exception as e:
+            logging.exception(f"Could not process song in '{subdir_path}': {e}")
 
     @classmethod
     async def download(cls, id):
-        response = usdb.session.post(f"https://usdb.animux.de/index.php?link=gettxt&id={id}", headers={"Cookie": cls.php_session_id}, data={"wd": "1"})
-        response.raise_for_status()
+        try:
+            response = usdb.session.post(f"https://usdb.animux.de/index.php?link=gettxt&id={id}", headers={"Cookie": cls.php_session_id}, data={"wd": "1"})
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            raise DownloadException(f"Failed to retrieve song data: {e}")
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -192,7 +212,7 @@ class Song:
 
             process = await asyncio.create_subprocess_exec(
                 # config.youtube_dl, "-o", "video.mp4", "--format", "mp4", url,
-                config.youtube_dl, "-o", "video.mp4", "-f", "136+140", url,
+                config.youtube_dl, "-o", "video.mp4", "-f", "bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]/best[height<=1080]", url,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=tempdir
@@ -233,7 +253,7 @@ class Song:
                 destination = os.path.join(directory, file_name)
                 shutil.move(source, destination)
 
-        return cls(directory, title, artist, id, "cover.jpg", "song.mp3")
+        return cls(directory, title, artist, id, "cover.jpg", "song.mp3", source="local")
 
     @classmethod
     def song_list(cls) -> List[dict]:
@@ -241,7 +261,65 @@ class Song:
 
     @classmethod
     def get_song_by_id(cls, id) -> 'Song':
-        return cls.songs.get(str(id))
+        """
+        Get a song by ID, checking both local and network paths
+        """
+        # First try to get from local path
+        song = cls.songs.get(str(id))
+        if song:
+            return song
+
+        # If not found, check network path
+        network_songs_dir = config.network_songs_dir if hasattr(config, 'network_songs_dir') else None
+        try:
+            for subdir in os.listdir(network_songs_dir):
+                subdir_path = os.path.join(network_songs_dir, subdir)
+                if os.path.isdir(subdir_path):
+                    try:
+                        usdb_id = None
+                        if os.path.isfile(os.path.join(subdir_path, "usdb_data.json")):
+                            with open(os.path.join(subdir_path, "usdb_data.json")) as file:
+                                usdb_data = json.loads(file.read())
+                                usdb_id = usdb_data.get("id")
+
+                        if str(usdb_id) == str(id):
+                            txt_files = [f for f in os.listdir(subdir_path) if f.endswith('.txt')]
+                            if txt_files:
+                                txt_path = os.path.join(subdir_path, txt_files[0])
+                                with open(txt_path, 'r') as file:
+                                    txt = file.read()
+
+                                    match = re.search(r'#TITLE:(.*)\n', txt)
+                                    if match:
+                                        title = match.group(1)
+                                    else:
+                                        logging.warning(f"No title for {subdir_path}")
+                                        return None
+
+                                    match = re.search(r'#ARTIST:(.*)\n', txt)
+                                    if match:
+                                        artist = match.group(1)
+                                    else:
+                                        logging.warning(f"No artist for {subdir_path}")
+                                        return None
+
+                                    match = re.search(r'#COVER:(.*)\n', txt)
+                                    cover = None
+                                    if match:
+                                        cover = match.group(1)
+
+                                    match = re.search(r'#MP3:(.*)\n', txt)
+                                    mp3 = None
+                                    if match:
+                                        mp3 = match.group(1)
+
+                                    return cls(subdir_path, title, artist, usdb_id, cover, mp3, source="net")
+                    except Exception as e:
+                        logging.error(f"Error processing network song {subdir_path}: {e}")
+        except Exception as e:
+            logging.error(f"Error accessing network path: {e}")
+
+        return None
 
     @staticmethod
     def get_mp3_length(filename):
@@ -249,7 +327,7 @@ class Song:
         duration = audiofile.info.time_secs
         return duration
 
-    def __init__(self, directory: str, title: str, artist: str, usdb_id: Optional[str] = None, cover: Optional[str] = None, mp3: Optional[str] = None):
+    def __init__(self, directory: str, title: str, artist: str, usdb_id: Optional[str] = None, cover: Optional[str] = None, mp3: Optional[str] = None, source: str = "local"):
         """
         Creates a new song from the information found in the directory
 
@@ -266,6 +344,7 @@ class Song:
         self.cover = cover
         self.mp3 = mp3
         self.duration = self.get_mp3_length(os.path.join(directory, mp3))
+        self.source = source  # Can be 'local' or 'net'
 
         if cover:
             self.cover_path = os.path.join(directory, cover)
@@ -273,7 +352,6 @@ class Song:
             self.cover_path = None
 
         self.id = usdb_id or uuid.uuid4().hex
-
         self.songs[str(self.id)] = self
 
         if usdb_id is not None:
@@ -296,5 +374,6 @@ class Song:
             "artist": self.artist,
             "usdb_id": self.usdb_id,
             "id": self.id,
-            "duration": self.duration
+            "duration": self.duration,
+            "source": self.source
         }
